@@ -1,4 +1,83 @@
-# Deployment Guide
+# GitHub Pages Deployment Guide
+
+This VS Code Clone is configured for automatic deployment to GitHub Pages.
+
+## 🚀 Setup Instructions
+
+### Step 1: Enable GitHub Pages
+
+1. Go to your GitHub repository: https://github.com/Devanshshar01/frontend-project
+2. Click on **Settings** (top menu)
+3. In the left sidebar, click **Pages**
+4. Under "Build and deployment":
+   - **Source**: Select "GitHub Actions"
+5. Click **Save**
+
+### Step 2: Push the Changes
+
+The deployment workflow is already configured. Just push your code:
+
+```bash
+git add .
+git commit -m "Add GitHub Pages deployment"
+git push origin main
+```
+
+### Step 3: Wait for Deployment
+
+1. Go to the **Actions** tab in your repository
+2. You'll see the "Deploy to GitHub Pages" workflow running
+3. Wait for it to complete (usually 2-3 minutes)
+4. Once done, your site will be live!
+
+## 🌐 Your Live URL
+
+After deployment, your VS Code Clone will be available at:
+
+**https://devanshshar01.github.io/frontend-project/**
+
+## 🔄 Automatic Deployments
+
+Every time you push to the `main` branch, GitHub Actions will:
+1. ✅ Build your React app
+2. ✅ Automatically deploy to GitHub Pages
+3. ✅ Your changes go live in 2-3 minutes
+
+## 🐛 Troubleshooting
+
+### If the workflow fails:
+
+1. Check the **Actions** tab for error messages
+2. Make sure GitHub Pages is enabled in Settings → Pages
+3. Ensure the workflow has the right permissions
+
+### If you see a 404 page:
+
+1. Wait a few more minutes (first deployment can take up to 10 minutes)
+2. Clear your browser cache
+3. Check that the base URL is correct in `vite.config.ts`
+
+### To manually trigger deployment:
+
+1. Go to **Actions** tab
+2. Click "Deploy to GitHub Pages"
+3. Click "Run workflow"
+4. Select `main` branch
+5. Click "Run workflow"
+
+## 📝 Files Added for Deployment
+
+- `.github/workflows/deploy.yml` - GitHub Actions workflow
+- `vite.config.ts` - Updated with correct base path
+- `DEPLOYMENT.md` - This guide
+
+## 🎉 That's It!
+
+Your VS Code Clone is now set up for automatic deployment. Every push to `main` will update your live site!
+
+---
+
+# Original Deployment Guide
 
 ## Prerequisites
 
