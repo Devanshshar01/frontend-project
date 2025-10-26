@@ -1,226 +1,107 @@
-import { useEffect, useRef, useCallback } from 'react';
-import Editor, { type OnMount, type Monaco } from '@monaco-editor/react';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import Editor, { type OnMount } from '@monaco-editor/react';
 import type * as monacoEditor from 'monaco-editor';
-import { useEditorStore } from '../../../shared/stores/editorStore';
-import { useCollaborationStore } from '../../../shared/stores/collaborationStore';
-import { useAutoSave } from '../../../shared/hooks/useAutoSave';
-import { useThrottle } from '../../../shared/hooks/useThrottle';
 import { Spinner } from '../../../shared/components/atoms/Spinner';
-import { COLLABORATION_CONFIG } from '../../../shared/config/constants';
-import type { CursorPosition } from '../../../shared/types';
-
-/**
- * Monaco-based Code Editor with real-time collaboration
- * Features:
- * - Syntax highlighting for multiple languages
- * - Auto-save with debouncing (3s)
- * - Real-time cursor positions
- * - Collaborative editing with CRDT
- * - Accessibility support
- */
+import type { FileNode } from '../../../shared/services/filesystem.service';
+import { fileSystemService } from '../../../shared/services/filesystem.service';
 
 interface CodeEditorProps {
-  onContentChange?: (content: string) => void;
-  onCursorPositionChange?: (position: CursorPosition) => void;
-  onSave?: (content: string) => void | Promise<void>;
-  readOnly?: boolean;
+  currentFile: FileNode | null;
+  onCursorChange?: (line: number, column: number) => void;
 }
 
-export function CodeEditor({
-  onContentChange,
-  onCursorPositionChange,
-  onSave,
-  readOnly = false,
-}: CodeEditorProps) {
+export function CodeEditor({ currentFile, onCursorChange }: CodeEditorProps) {
   const editorRef = useRef<monacoEditor.editor.IStandaloneCodeEditor | null>(null);
-  const monacoRef = useRef<Monaco | null>(null);
-  const decorationsRef = useRef<string[]>([]);
+  const [content, setContent] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const saveTimeoutRef = useRef<number | undefined>(undefined);
 
-  const { currentFile, settings, updateFileContent, markAsUnsaved } = useEditorStore();
-  const { cursorPositions, participants } = useCollaborationStore();
+  // Update content when file changes
+  useEffect(() => {
+    if (currentFile) {
+      setContent(currentFile.content || '');
+      setHasUnsavedChanges(false);
+    }
+  }, [currentFile?.id]);
 
   // Auto-save functionality
-  useAutoSave(
-    currentFile?.content || '',
-    async (content) => {
-      if (onSave && currentFile) {
-        await onSave(content);
-      }
-    },
-    settings.autoSaveDelay,
-    settings.autoSave
-  );
-
-  // Throttled cursor position update
-  const throttledCursorUpdate = useThrottle(
-    (position: CursorPosition) => {
-      onCursorPositionChange?.(position);
-    },
-    COLLABORATION_CONFIG.CURSOR_UPDATE_THROTTLE
-  );
-
-  /**
-   * Handle editor mount
-   */
-  const handleEditorMount: OnMount = useCallback((editor, monaco) => {
-    editorRef.current = editor;
-    monacoRef.current = monaco;
-
-    // Set up cursor position change listener
-    editor.onDidChangeCursorPosition((e) => {
-      const position: CursorPosition = {
-        lineNumber: e.position.lineNumber,
-        column: e.position.column,
-      };
-      throttledCursorUpdate(position);
-    });
-
-    // Set up content change listener
-    editor.onDidChangeModelContent(() => {
-      const content = editor.getValue();
-      if (currentFile) {
-        updateFileContent(currentFile.id, content);
-        markAsUnsaved(currentFile.id);
-      }
-      onContentChange?.(content);
-    });
-
-    // Accessibility: Announce editor ready to screen readers
-    const announcement = document.createElement('div');
-    announcement.setAttribute('role', 'status');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.className = 'sr-only';
-    announcement.textContent = 'Code editor loaded and ready';
-    document.body.appendChild(announcement);
-    setTimeout(() => announcement.remove(), 1000);
-
-    // Set up keyboard shortcuts
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-      const content = editor.getValue();
-      onSave?.(content);
-    });
-  }, [currentFile, onContentChange, onCursorPositionChange, onSave, throttledCursorUpdate, updateFileContent, markAsUnsaved]);
-
-  /**
-   * Update remote cursor decorations
-   */
   useEffect(() => {
-    if (!editorRef.current || !monacoRef.current) return;
+    if (hasUnsavedChanges && currentFile) {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
 
-    const editor = editorRef.current;
-    const monaco = monacoRef.current;
+      saveTimeoutRef.current = setTimeout(() => {
+        fileSystemService.updateFileContent(currentFile.id, content);
+        setHasUnsavedChanges(false);
+        console.log('Auto-saved:', currentFile.name);
+      }, 2000); // Auto-save after 2 seconds of inactivity
+    }
 
-    // Clear previous decorations
-    decorationsRef.current = editor.deltaDecorations(decorationsRef.current, []);
-
-    // Create decorations for remote cursors
-    const newDecorations: monacoEditor.editor.IModelDeltaDecoration[] = [];
-
-    cursorPositions.forEach((position, userId) => {
-      const participant = participants.get(userId);
-      if (!participant) return;
-
-      const color = participant.color;
-
-      // Cursor decoration
-      newDecorations.push({
-        range: new monaco.Range(
-          position.lineNumber,
-          position.column,
-          position.lineNumber,
-          position.column
-        ),
-        options: {
-          className: 'remote-cursor',
-          stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-          beforeContentClassName: 'remote-cursor-before',
-          glyphMarginClassName: 'remote-cursor-glyph',
-          hoverMessage: { value: `${participant.user.name}'s cursor` },
-        },
-      });
-
-      // Add cursor widget with user name
-      const widget: monacoEditor.editor.IContentWidget = {
-        getId: () => `cursor-${userId}`,
-        getDomNode: () => {
-          const node = document.createElement('div');
-          node.style.backgroundColor = color;
-          node.style.color = 'white';
-          node.style.padding = '2px 4px';
-          node.style.borderRadius = '3px';
-          node.style.fontSize = '12px';
-          node.style.position = 'absolute';
-          node.style.zIndex = '1000';
-          node.textContent = participant.user.name;
-          return node;
-        },
-        getPosition: () => ({
-          position: {
-            lineNumber: position.lineNumber,
-            column: position.column,
-          },
-          preference: [monaco.editor.ContentWidgetPositionPreference.ABOVE],
-        }),
-      };
-
-      editor.addContentWidget(widget);
-    });
-
-    // Apply decorations
-    decorationsRef.current = editor.deltaDecorations([], newDecorations);
-
-    // Cleanup
     return () => {
-      if (editorRef.current) {
-        editorRef.current.deltaDecorations(decorationsRef.current, []);
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [cursorPositions, participants]);
+  }, [content, hasUnsavedChanges, currentFile]);
 
-  /**
-   * Update editor options when settings change
-   */
-  useEffect(() => {
-    if (!editorRef.current) return;
+  const handleEditorMount: OnMount = useCallback((editor, monaco) => {
+    editorRef.current = editor;
 
-    editorRef.current.updateOptions({
-      fontSize: settings.fontSize,
-      tabSize: settings.tabSize,
-      wordWrap: settings.wordWrap ? 'on' : 'off',
-      minimap: { enabled: settings.minimap },
-      lineNumbers: settings.lineNumbers ? 'on' : 'off',
-      readOnly,
+    // Cursor position change
+    editor.onDidChangeCursorPosition((e) => {
+      onCursorChange?.(e.position.lineNumber, e.position.column);
     });
-  }, [settings, readOnly]);
+
+    // Save shortcut (Ctrl+S / Cmd+S)
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+      if (currentFile) {
+        fileSystemService.updateFileContent(currentFile.id, content);
+        setHasUnsavedChanges(false);
+        console.log('Manually saved:', currentFile.name);
+      }
+    });
+  }, [content, currentFile, onCursorChange]);
+
+  const handleEditorChange = (value: string | undefined) => {
+    if (value !== undefined) {
+      setContent(value);
+      setHasUnsavedChanges(true);
+    }
+  };
 
   if (!currentFile) {
     return (
-      <div className="flex h-full items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="flex h-full items-center justify-center bg-[#1e1e1e] text-gray-400">
         <div className="text-center">
-          <p className="text-lg text-gray-500 dark:text-gray-400">
-            No file open. Select or create a file to start editing.
-          </p>
+          <p className="text-lg">No file selected</p>
+          <p className="text-sm mt-2">Open a file from the explorer to start editing</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full w-full" role="main" aria-label="Code editor">
+    <div className="h-full w-full relative">
+      {hasUnsavedChanges && (
+        <div className="absolute top-2 right-2 z-10 px-3 py-1 bg-[#007acc] text-white text-xs rounded shadow-lg">
+          Unsaved changes...
+        </div>
+      )}
       <Editor
         height="100%"
-        language={currentFile.language}
-        value={currentFile.content}
-        theme={settings.theme.isDark ? 'vs-dark' : 'light'}
+        language={currentFile.language || 'plaintext'}
+        value={content}
+        theme="vs-dark"
         onMount={handleEditorMount}
+        onChange={handleEditorChange}
         loading={<Spinner size="lg" label="Loading editor" />}
         options={{
-          fontSize: settings.fontSize,
-          tabSize: settings.tabSize,
-          wordWrap: settings.wordWrap ? 'on' : 'off',
-          minimap: { enabled: settings.minimap },
-          lineNumbers: settings.lineNumbers ? 'on' : 'off',
-          readOnly,
+          fontSize: 14,
+          tabSize: 2,
+          wordWrap: 'on',
+          minimap: { enabled: true },
+          lineNumbers: 'on',
           automaticLayout: true,
           scrollBeyondLastLine: false,
           smoothScrolling: true,
@@ -234,9 +115,7 @@ export function CodeEditor({
             bracketPairs: true,
             indentation: true,
           },
-          // Accessibility
-          accessibilitySupport: 'on',
-          ariaLabel: `Code editor for ${currentFile.name}`,
+          padding: { top: 10 },
         }}
       />
     </div>
