@@ -1,269 +1,196 @@
-# 🚀 CodeCollab - Real-Time Collaborative Code Editor
+# VS Code Clone - Fully Working Code Editor
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-19.1-blue.svg)](https://reactjs.org/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Lighthouse](https://img.shields.io/badge/Lighthouse-90%2B-success.svg)](https://developers.google.com/web/tools/lighthouse)
-
-A production-grade, enterprise-scale collaborative code editor built with React 18+, TypeScript, and Monaco Editor. Features real-time collaboration, syntax highlighting for 17+ languages, auto-save, and full accessibility support.
-
-![CodeCollab Demo](./docs/demo.gif)
+A production-ready, VS Code-like code editor built with React, TypeScript, and Monaco Editor. Features complete file management, auto-save, and support for 15+ programming languages.
 
 ## ✨ Features
 
-### 🎯 Core Features (MVP)
-- **Real-Time Collaboration** - Multiple users editing simultaneously with <100ms latency
-- **Monaco Editor Integration** - Full VS Code editor experience in the browser
-- **Multi-Language Support** - TypeScript, JavaScript, Python, Java, Go, Rust, and 10+ more
-- **Auto-Save** - Automatic saving every 3 seconds with visual indicators
-- **File Management** - Tree-based file explorer with folder support
-- **Syntax Highlighting** - Context-aware code coloring and IntelliSense
-- **Authentication** - JWT-based auth with OAuth (Google, GitHub)
-- **Keyboard Shortcuts** - Power-user friendly with extensive shortcuts
+### 🎯 Core Features
+- **Monaco Editor** - Full VS Code editor experience in the browser
+- **Multi-Language Support** - JavaScript, TypeScript, Python, HTML, CSS, C, C++, Java, Go, Rust, Shell, Bash, JSON, Markdown, and more
+- **Auto-Save** - Automatic saving every 2 seconds with visual indicator
+- **Manual Save** - Ctrl+S / Cmd+S keyboard shortcut
+- **Tab Management** - Open multiple files in tabs, close tabs individually
+- **VS Code-like UI** - Dark theme with familiar layout and colors
 
-### 🚀 Advanced Features
-- **Live Cursor Positions** - See where other users are editing in real-time
-- **Presence Indicators** - Know who's active in the session
-- **Undo/Redo** - Full history tracking (Ctrl+Z/Ctrl+Y)
-- **Dark Mode** - Beautiful dark theme with system preference detection
-- **Responsive Design** - Mobile-first, works on all screen sizes
-- **Offline Support** - Service worker caching for offline access
+### 📁 File Management
+- **Create Files** - Right-click or use toolbar buttons
+- **Create Folders** - Organize your code with nested folders
+- **Rename** - Inline renaming with Enter/Escape keys
+- **Delete** - Remove files and folders with confirmation
+- **File Explorer** - Tree view with expand/collapse functionality
+- **Context Menu** - Right-click for file operations
+- **localStorage Persistence** - All changes saved automatically
 
-### ♿ Accessibility (WCAG 2.1 AA Compliant)
-- **Screen Reader Support** - Full ARIA implementation
-- **Keyboard Navigation** - 100% keyboard accessible
-- **Focus Management** - Custom focus indicators (2px solid)
-- **Color Contrast** - 4.5:1 ratio for normal text
-- **Skip Links** - Skip to main content functionality
-
-## 🏗️ Architecture
-
-### Tech Stack
-
-**Frontend Framework:**
-- React 18.3+ with TypeScript
-- Vite for lightning-fast builds
-- TailwindCSS for styling
-
-**State Management:**
-- Zustand for global state
-- React Query for server state
-- Context API for theme/settings
-
-**Real-Time:**
-- Socket.io for WebSocket connections
-- Yjs CRDT for conflict resolution
-- <100ms latency target
-
-**Code Editor:**
-- Monaco Editor (VS Code engine)
-- Syntax highlighting for 17+ languages
-- IntelliSense and autocomplete
-
-**Testing:**
-- Vitest for unit tests (80%+ coverage)
-- React Testing Library for component tests
-- Playwright for E2E tests
-
-### Folder Structure
-
-```
-src/
-├── features/              # Feature-based modules
-│   ├── auth/             # Authentication
-│   ├── editor/           # Code editor
-│   ├── collaboration/    # Real-time features
-│   └── files/            # File management
-├── shared/
-│   ├── components/       # Atomic design components
-│   │   ├── atoms/       # Button, Input, etc.
-│   │   ├── molecules/   # Form groups, cards
-│   │   └── organisms/   # Header, sidebar
-│   ├── hooks/           # Custom React hooks
-│   ├── services/        # API & WebSocket services
-│   ├── stores/          # Zustand stores
-│   ├── types/           # TypeScript interfaces
-│   ├── utils/           # Helper functions
-│   └── config/          # Constants & config
-└── test/                # Test utilities
-```
+### 💻 Editor Features
+- **Syntax Highlighting** - Context-aware for all supported languages
+- **Line Numbers** - Always visible with current line highlight
+- **Minimap** - Code overview on the right side
+- **Word Wrap** - Automatic text wrapping
+- **Cursor Position** - Live tracking in status bar
+- **File Info** - Language and line count in status bar
+- **Bracket Matching** - Automatic bracket pair colorization
+- **Code Folding** - Collapse/expand code blocks
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Node.js 18+ and npm/yarn/pnpm
-- Git
-
-### Installation
-
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/codecollab.git
-cd codecollab
-
 # Install dependencies
 npm install
 
-# Copy environment variables
-cp .env.example .env
-
 # Start development server
 npm run dev
+
+# Build for production
+npm run build
+
+# Type check
+npm run type-check
 ```
 
 The app will be available at `http://localhost:5173`
 
-### Environment Variables
+## 📖 Usage
 
-Create a `.env` file in the root directory:
+### Creating Files
+1. Click the **+** (New File) button in the Explorer header
+2. Or right-click on a folder and select "New File"
+3. Enter the filename with extension (e.g., `app.js`, `style.css`)
 
-```bash
-VITE_API_BASE_URL=http://localhost:3001/api
-VITE_WS_URL=ws://localhost:3001
-VITE_GOOGLE_CLIENT_ID=your_google_client_id
-VITE_GITHUB_CLIENT_ID=your_github_client_id
+### Creating Folders
+1. Click the folder **+** button in the Explorer header
+2. Or right-click on a folder and select "New Folder"
+3. Enter the folder name
+
+### Editing Files
+1. Click on any file in the Explorer to open it
+2. The file opens in a new tab
+3. Start typing - changes auto-save after 2 seconds
+4. Press **Ctrl+S** / **Cmd+S** to save immediately
+5. Unsaved changes show an indicator in the top-right corner
+
+### Renaming Files/Folders
+1. Right-click on a file or folder
+2. Select "Rename"
+3. Type the new name
+4. Press **Enter** to confirm or **Esc** to cancel
+
+### Deleting Files/Folders
+1. Right-click on a file or folder
+2. Select "Delete"
+3. Confirm the deletion
+
+### Managing Tabs
+- **Switch Tabs** - Click on any tab to switch files
+- **Close Tab** - Click the X button on the tab
+- Closing the current file switches to the last open tab
+
+### Toggle Sidebar
+- Click the menu icon (☰) or X in the top-left to show/hide the file explorer
+
+## 🌐 Supported Languages
+
+The editor automatically detects language based on file extension:
+
+| Extension | Language |
+|-----------|----------|
+| .js, .jsx | JavaScript |
+| .ts, .tsx | TypeScript |
+| .py | Python |
+| .html | HTML |
+| .css | CSS |
+| .c, .h | C |
+| .cpp, .hpp | C++ |
+| .java | Java |
+| .go | Go |
+| .rs | Rust |
+| .sh, .bash | Shell |
+| .json | JSON |
+| .md | Markdown |
+| .php | PHP |
+| .rb | Ruby |
+| .sql | SQL |
+
+## 🎨 UI Components
+
+- **Header** - Toggle sidebar, app title, current file path
+- **File Explorer** - Tree view with file/folder operations
+- **Tab Bar** - Open file tabs with close buttons
+- **Editor** - Monaco editor with syntax highlighting
+- **Status Bar** - File info, language, cursor position, line count
+
+## 💾 Data Persistence
+
+All files and folders are stored in browser localStorage:
+- Files persist across browser sessions
+- Changes are saved automatically
+- Clear browser data to reset
+
+## 🔧 Tech Stack
+
+- **React 19** - UI framework
+- **TypeScript** - Type safety
+- **Monaco Editor** - Code editing
+- **Vite** - Build tool
+- **TailwindCSS** - Styling
+- **nanoid** - Unique ID generation
+- **Lucide React** - Icons
+
+## 📁 Project Structure
+
+```
+src/
+├── App.tsx                      # Main application
+├── features/
+│   ├── editor/
+│   │   └── components/
+│   │       └── CodeEditor.tsx   # Monaco editor wrapper
+│   └── files/
+│       └── components/
+│           └── FileExplorer.tsx # File tree component
+└── shared/
+    ├── components/
+    │   └── organisms/
+    │       ├── TabBar.tsx       # File tabs
+    │       └── StatusBar.tsx    # Bottom status bar
+    └── services/
+        └── filesystem.service.ts # File management logic
 ```
 
-## 📦 Available Scripts
-
-```bash
-# Development
-npm run dev              # Start dev server
-npm run build           # Build for production
-npm run preview         # Preview production build
-
-# Code Quality
-npm run lint            # Run ESLint
-npm run lint:fix        # Fix ESLint errors
-npm run format          # Format with Prettier
-npm run format:check    # Check formatting
-npm run type-check      # TypeScript type checking
-
-# Testing
-npm run test            # Run unit tests
-npm run test:ui         # Open Vitest UI
-npm run test:coverage   # Generate coverage report
-npm run test:e2e        # Run E2E tests with Playwright
-```
-
-## 🎨 Design System
-
-### Colors
-
-```css
-Primary: #0ea5e9 (Sky Blue)
-Secondary: #8b5cf6 (Purple)
-Success: #10b981 (Green)
-Danger: #ef4444 (Red)
-Warning: #f59e0b (Amber)
-```
-
-### Breakpoints
-
-```css
-Mobile: 320px - 767px
-Tablet: 768px - 1023px
-Desktop: 1024px - 1439px
-Large Desktop: 1440px+
-```
-
-## ⌨️ Keyboard Shortcuts
+## 🎯 Keyboard Shortcuts
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+S` | Save file |
-| `Ctrl+B` | Toggle sidebar |
-| `Ctrl+Shift+P` | Command palette |
-| `Ctrl+F` | Find in file |
-| `Ctrl+H` | Find and replace |
-| `Ctrl+Z` | Undo |
-| `Ctrl+Y` | Redo |
-| `Ctrl+/` | Toggle comment |
-| `Shift+?` | Show shortcuts |
+| **Ctrl+S** / **Cmd+S** | Save file |
+| **Enter** | Confirm rename |
+| **Esc** | Cancel rename |
+| **Right-click** | Open context menu |
 
-## 🧪 Testing
+## 🚀 Deployment
 
-### Unit Tests
+The app is ready to deploy to any static hosting service:
 
 ```bash
-npm run test
+# Build for production
+npm run build
+
+# The dist/ folder contains the production build
 ```
 
-Tests are colocated with components:
-```
-Button.tsx
-Button.test.tsx
-```
+Deploy to:
+- **Vercel** - `vercel deploy`
+- **Netlify** - Drag & drop `dist/` folder
+- **GitHub Pages** - Push `dist/` to gh-pages branch
 
-### E2E Tests
+## 📝 License
 
-```bash
-npm run test:e2e
-```
-
-Critical user journeys tested:
-- User registration → Login → Edit file → Collaborate
-- File creation → Syntax highlighting → Auto-save
-- Authentication flows
-
-### Coverage
-
-Maintaining 80%+ code coverage:
-
-```bash
-npm run test:coverage
-```
-
-## 📊 Performance Targets
-
-✅ **All targets met:**
-
-- First Contentful Paint: **< 1.5s**
-- Largest Contentful Paint: **< 2.5s**
-- Time to Interactive: **< 3.5s**
-- Cumulative Layout Shift: **< 0.1**
-- First Input Delay: **< 100ms**
-- Lighthouse Score: **90+**
-
-## 🔒 Security
-
-- JWT tokens stored in httpOnly cookies
-- CSRF protection enabled
-- Input sanitization with DOMPurify
-- XSS prevention
-- Rate limiting on API endpoints
-- HTTPS enforced in production
-- Content Security Policy headers
-
-## 🌐 Browser Support
-
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-- Mobile browsers (iOS Safari, Chrome Mobile)
-
-## 📝 Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
-
-## 📄 License
-
-MIT License - see [LICENSE](./LICENSE) file
+MIT License - feel free to use this project for learning or production!
 
 ## 🙏 Acknowledgments
 
 - Monaco Editor by Microsoft
-- React team for React 18
-- Vercel for Vite
-- Open source community
-
-## 📞 Support
-
-- Documentation: [docs.codecollab.io](https://docs.codecollab.io)
-- Issues: [GitHub Issues](https://github.com/yourusername/codecollab/issues)
-- Email: support@codecollab.io
+- React team for React 19
+- Vite team for blazing-fast builds
 
 ---
 
-**Built with ❤️ by FAANG-level engineers for the developer community**
+**Built with ❤️ as a fully functional VS Code clone**
